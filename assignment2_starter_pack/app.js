@@ -56,6 +56,11 @@ function handleKeydown(e) {
   if (isRecording) recording.push({ note, duration: "8n", timing: (Date.now() - startTime) / 1000 });
 }
 
+// Function to handle piano key clicks, called from HTML
+function pianoKeyClick(note) {
+  playAndRecord(note);
+}
+
 // Play the tune
 function playSelectedTune() {
   const selectedTune = tunes[document.getElementById("tunesDrop").value].tune;
