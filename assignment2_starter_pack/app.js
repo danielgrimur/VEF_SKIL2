@@ -44,7 +44,33 @@ function setupEventListeners() {
   document.getElementById("recordbtn").addEventListener("click", startRecording);
   document.getElementById("stopbtn").addEventListener("click", stopRecording);
   document.addEventListener("keydown", handleKeydown);
+  pianoKeyClick();
 }
+
+// Handle keydown for recording and playing notes
+function handleKeydown(e) {
+  if (e.repeat || document.activeElement.id === "recordName" || !(e.key in KEY_MAP)) return;
+  playAndRecord(KEY_MAP[e.key]);
+}
+
+// Setup mouse click event listeners for piano keys
+function setupPianoKeyClicks() {
+  Object.values(KEY_MAP).forEach(note => {
+    const pianoKey = document.getElementById(note);
+    if (pianoKey) {
+      pianoKey.addEventListener("mousedown", () => playAndRecord(note));
+    }
+  });
+}
+
+// Play and record a note
+function playAndRecord(note) {
+  const pianoKey = document.getElementById(note);
+  if (pianoKey) {
+    pianoKey.style.backgroundColor = "gray";
+    synth.triggerAttackRelease(note, "8n");
+    setTimeout(() => pianoKey.style.backgroundColor = "", 200);
+  }
 
 // Play the tune
 function playSelectedTune() {
@@ -67,16 +93,6 @@ function stopRecording() {
   document.getElementById("stopbtn").disabled = true;
   isRecording = false;
   if (recording.length) recordAndCreateTune();
-}
-
-// Deal with keydown recording and playing notes
-function handleKeydown(e) {
-  if (e.repeat || document.activeElement.id === "recordName" || !(e.key in KEY_MAP)) return;
-  const note = KEY_MAP[e.key], pianoKey = document.getElementById(note);
-  pianoKey.style.backgroundColor = "gray";
-  synth.triggerAttackRelease(note, "8n");
-  setTimeout(() => pianoKey.style.backgroundColor = "", 200);
-  if (isRecording) recording.push({ note, duration: "8n", timing: (Date.now() - startTime) / 1000 });
 }
 
 // Initialize
