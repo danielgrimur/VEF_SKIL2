@@ -67,14 +67,6 @@ const populateSelector = () => {
   });
 };
 
-const synth = new Tone.Sampler({
-  urls: {
-    C4: "C4.mp3",
-  },
-  release: 1,
-  baseUrl: "https://tonejs.github.io/audio/salamander/",
-}).toDestination();
-
 document.getElementById("tunebtn").addEventListener("click", (e) => {
   const tune = tunes[document.getElementById("tunesDrop").value].tune;
   const now = Tone.now();
