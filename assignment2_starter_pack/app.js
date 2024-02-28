@@ -105,3 +105,4 @@ function init() {
 const synth = new Tone.Sampler({ urls: { C4: "C4.mp3" }, release: 1, baseUrl: "https://tonejs.github.io/audio/salamander/" }).toDestination();
 
 init(); // Start the application
+}
