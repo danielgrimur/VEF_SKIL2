@@ -71,6 +71,7 @@ function playAndRecord(note) {
     synth.triggerAttackRelease(note, "8n");
     setTimeout(() => pianoKey.style.backgroundColor = "", 200);
   }
+}
 
 // Play the tune
 function playSelectedTune() {
@@ -105,4 +106,3 @@ function init() {
 const synth = new Tone.Sampler({ urls: { C4: "C4.mp3" }, release: 1, baseUrl: "https://tonejs.github.io/audio/salamander/" }).toDestination();
 
 init(); // Start the application
-}
