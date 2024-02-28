@@ -29,7 +29,7 @@ let isRecording = false;
 let startTime = 0;
 
 const fetchAndPopulateTunes = async () => {
-  //Perform a GET request to the url
+  //GET request to the url
   try {
     const response = await axios(API_URL);
     console.log("Success: ", response.data);
@@ -38,33 +38,27 @@ const fetchAndPopulateTunes = async () => {
   } catch (error) {
     console.log(error);
   }
-  // This code is always executed, independent of whether the request succeeds or fails.
 };
 
 const createTune = async () => {
   const recordName = document.getElementById("recordName").value;
 
-  //Perform a POST request to the url
+  //POST request to the url
   try {
     const response = await axios.post(API_URL, {
       name: recordName,
       tune: recording,
     });
-    //When successful, print the received data
     console.log("Successfully written: ", response.data);
     fetchAndPopulateTunes();
   } catch (error) {
-    //When unsuccessful, print the error.
-    console.log(error);
-  }
-  // This code is always executed, independent of whether the request succeeds or fails.
+    console.log(error);  }
 };
 
 const populateSelector = () => {
   const selector = document.getElementById("tunesDrop");
   selector.innerHTML = "";
 
-  // Here we use forEach instead of map as we are not retuning anything from our loop
   tunes.forEach((tune, index) => {
     const currentOpt = document.createElement("option");
     currentOpt.value = index;
@@ -86,12 +80,8 @@ document.getElementById("tunebtn").addEventListener("click", (e) => {
   const now = Tone.now();
 
   tune.forEach((tune) => {
-    // Here we use object destructuring to extract attributes from tune.
-    // It is not neccessary, but can make for cleaner code.
     const { note, duration, timing } = tune;
     synth.triggerAttackRelease(note, duration, now + timing);
-    // This is the same as using the line below, without desctructuring
-    // synth.triggerAttackRelease(tune.note, tune.duration, now + tune.timing)
   });
 });
 
@@ -122,7 +112,7 @@ document.getElementById("stopbtn").addEventListener("click", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
-  // No more spam when keys are held down
+
   if (e.repeat) {
     return;
   }
