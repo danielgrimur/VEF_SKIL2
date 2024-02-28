@@ -27,10 +27,17 @@ function updateTuneSelector() {
 
 // Record and create a new tune
 async function recordAndCreateTune() {
-  const tuneName = document.getElementById("recordName").value;
+  if (recording.length === 0) return; // No tones recorded, do not proceed
+  
+  const recordNameInput = document.getElementById("recordName");
+  const tuneName = recordNameInput.value.trim() || "No-name Tune"; // Use "No-name Tune" if input is empty or only whitespace
+
   try {
     const { data } = await axios.post(API_URL, { name: tuneName, tune: recording });
-    fetchAndDisplayTunes();
+    tunes.push(data); // Add the new tune to the local 'tunes' array so it appears in the dropdown
+    updateTuneSelector(); // Update the dropdown menu to include the new tune
+    recordNameInput.value = ''; // Clear the input field after successful upload
+    recording = []; // Reset the recording array for the next session
   } catch (error) {
     console.error("Creation Error: ", error);
   }
@@ -89,7 +96,7 @@ function stopRecording() {
   document.getElementById("recordbtn").disabled = false;
   document.getElementById("stopbtn").disabled = true;
   isRecording = false;
-  if (recording.length) recordAndCreateTune();
+  recordAndCreateTune();
 }
 
 // Initialize
