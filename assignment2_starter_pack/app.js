@@ -79,7 +79,7 @@ function handleKeydown(e) {
   if (isRecording) recording.push({ note, duration: "8n", timing: (Date.now() - startTime) / 1000 });
 }
 
-// Initialize app
+// Initialize
 function init() {
   fetchAndDisplayTunes();
   setupEventListeners();
