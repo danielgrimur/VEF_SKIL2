@@ -1,137 +1,91 @@
+// Constants for API and key mappings
 const API_URL = "http://localhost:3000/api/v1/tunes";
-
-const keyMap = {
-  // white keys
-  a: "c4",
-  s: "d4",
-  d: "e4",
-  f: "f4",
-  g: "g4",
-  h: "a4",
-  j: "b4",
-  k: "c5",
-  l: "d5",
-  æ: "e5",
-
-  // black keys
-  w: "c#4",
-  e: "d#4",
-  t: "f#4",
-  y: "g#4",
-  u: "bb4",
-  o: "c#5",
-  p: "d#5",
+const KEY_MAP = {
+  a: "c4", s: "d4", d: "e4", f: "f4", g: "g4", h: "a4", j: "b4", k: "c5", l: "d5", æ: "e5", ";": "e5", // White keys
+  w: "c#4", e: "d#4", t: "f#4", y: "g#4", u: "bb4", o: "c#5", p: "d#5" // Black keys
 };
 
-let tunes = [];
-let recording = [];
-let isRecording = false;
-let startTime = 0;
+// State variables
+let tunes = [], recording = [], isRecording = false, startTime = 0;
 
-const fetchAndPopulateTunes = async () => {
-  //GET request to the url
+// Fetch and display tunes from API
+async function fetchAndDisplayTunes() {
   try {
-    const response = await axios(API_URL);
-    console.log("Success: ", response.data);
-    tunes = response.data;
-    populateSelector();
+    const { data } = await axios.get(API_URL);
+    console.log("Fetched Tunes: ", data);
+    tunes = data;
+    updateTuneSelector();
   } catch (error) {
-    console.log(error);
+    console.error("Fetching Error: ", error);
   }
-};
+}
 
-const createTune = async () => {
-  const recordName = document.getElementById("recordName").value;
-
-  //POST request to the url
-  try {
-    const response = await axios.post(API_URL, {
-      name: recordName,
-      tune: recording,
-    });
-    console.log("Successfully written: ", response.data);
-    fetchAndPopulateTunes();
-  } catch (error) {
-    console.log(error);  }
-};
-
-const populateSelector = () => {
+// Update tune selector dropdown
+function updateTuneSelector() {
   const selector = document.getElementById("tunesDrop");
-  selector.innerHTML = "";
+  selector.innerHTML = tunes.map((tune, index) => `<option value="${index}">${tune.name}</option>`).join('');
+}
 
-  tunes.forEach((tune, index) => {
-    const currentOpt = document.createElement("option");
-    currentOpt.value = index;
-    currentOpt.textContent = tune.name;
-    selector.appendChild(currentOpt);
-  });
-};
+// Record and create a new tune
+async function recordAndCreateTune() {
+  const tuneName = document.getElementById("recordName").value;
+  try {
+    const { data } = await axios.post(API_URL, { name: tuneName, tune: recording });
+    console.log("Tune Created: ", data);
+    fetchAndDisplayTunes();
+  } catch (error) {
+    console.error("Creation Error: ", error);
+  }
+}
 
-document.getElementById("tunebtn").addEventListener("click", (e) => {
-  const tune = tunes[document.getElementById("tunesDrop").value].tune;
-  const now = Tone.now();
+// Event listeners for buttons and keys
+function setupEventListeners() {
+  document.getElementById("tunebtn").addEventListener("click", playSelectedTune);
+  document.getElementById("recordbtn").addEventListener("click", startRecording);
+  document.getElementById("stopbtn").addEventListener("click", stopRecording);
+  document.addEventListener("keydown", handleKeydown);
+}
 
-  tune.forEach((tune) => {
-    const { note, duration, timing } = tune;
-    synth.triggerAttackRelease(note, duration, now + timing);
-  });
-});
+// Play the tune
+function playSelectedTune() {
+  const selectedTune = tunes[document.getElementById("tunesDrop").value].tune;
+  selectedTune.forEach(({ note, duration, timing }) => synth.triggerAttackRelease(note, duration, Tone.now() + timing));
+}
 
-document.getElementById("recordbtn").addEventListener("click", (e) => {
-  const recordBtn = document.getElementById("recordbtn");
-  const stopBtn = document.getElementById("stopbtn");
-  recordBtn.disabled = true;
-  stopBtn.disabled = false;
-  document.activeElement.blur();
-
+// Start recording tune
+function startRecording() {
+  document.getElementById("recordbtn").disabled = true;
+  document.getElementById("stopbtn").disabled = false;
   recording = [];
   startTime = Date.now();
   isRecording = true;
-});
+}
 
-document.getElementById("stopbtn").addEventListener("click", (e) => {
-  const recordBtn = document.getElementById("recordbtn");
-  const stopBtn = document.getElementById("stopbtn");
-  recordBtn.disabled = false;
-  stopBtn.disabled = true;
-
-  startTime = 0;
+// Stop recording tune
+function stopRecording() {
+  document.getElementById("recordbtn").disabled = false;
+  document.getElementById("stopbtn").disabled = true;
   isRecording = false;
+  if (recording.length) recordAndCreateTune();
+}
 
-  if (recording.length > 0) {
-    createTune();
-  }
-});
-
-document.addEventListener("keydown", (e) => {
-
-  if (e.repeat) {
-    return;
-  }
-
-  if (e.key in keyMap && document.activeElement.id !== "recordName") {
-    const tone = keyMap[e.key];
-    if (isRecording) {
-      const seconds = Date.now() - startTime;
-      recording.push({ note: tone, duration: "8n", timing: seconds / 1000 });
-    }
-
-    const pianoKey = document.getElementById(tone);
-    pianoKey.style.backgroundColor = "gray";
-
-    synth.triggerAttackRelease(tone, "8n");
-
-    setTimeout(() => (pianoKey.style.backgroundColor = ""), 200);
-  }
-});
-
-const pianoKeyClick = (note) => {
+// Deal with keydown recording and playing notes
+function handleKeydown(e) {
+  if (e.repeat || document.activeElement.id === "recordName" || !(e.key in KEY_MAP)) return;
+  const note = KEY_MAP[e.key], pianoKey = document.getElementById(note);
+  pianoKey.style.backgroundColor = "gray";
   synth.triggerAttackRelease(note, "8n");
+  setTimeout(() => pianoKey.style.backgroundColor = "", 200);
+  if (isRecording) recording.push({ note, duration: "8n", timing: (Date.now() - startTime) / 1000 });
+}
 
-  if (isRecording) {
-    const seconds = Date.now() - startTime;
-    recording.push({ note, duration: "8n", timing: seconds / 1000 });
-  }
-};
+// Initialize app
+function init() {
+  fetchAndDisplayTunes();
+  setupEventListeners();
+}
 
-fetchAndPopulateTunes();
+// Sampler for playing notes
+const synth = new Tone.Sampler({ urls: { C4: "C4.mp3" }, release: 1, baseUrl: "https://tonejs.github.io/audio/salamander/" }).toDestination();
+
+init(); // Start the application
