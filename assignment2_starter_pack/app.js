@@ -12,7 +12,6 @@ let tunes = [], recording = [], isRecording = false, startTime = 0;
 async function fetchAndDisplayTunes() {
   try {
     const { data } = await axios.get(API_URL);
-    console.log("Fetched Tunes: ", data);
     tunes = data;
     updateTuneSelector();
   } catch (error) {
@@ -31,7 +30,6 @@ async function recordAndCreateTune() {
   const tuneName = document.getElementById("recordName").value;
   try {
     const { data } = await axios.post(API_URL, { name: tuneName, tune: recording });
-    console.log("Tune Created: ", data);
     fetchAndDisplayTunes();
   } catch (error) {
     console.error("Creation Error: ", error);
@@ -49,16 +47,26 @@ function setupEventListeners() {
 // Deal with keydown recording and playing notes
 function handleKeydown(e) {
   if (e.repeat || document.activeElement.id === "recordName" || !(e.key in KEY_MAP)) return;
-  const note = KEY_MAP[e.key], pianoKey = document.getElementById(note);
-  pianoKey.style.backgroundColor = "gray";
-  synth.triggerAttackRelease(note, "8n");
-  setTimeout(() => pianoKey.style.backgroundColor = "", 200);
-  if (isRecording) recording.push({ note, duration: "8n", timing: (Date.now() - startTime) / 1000 });
+  playAndRecord(KEY_MAP[e.key]);
 }
 
 // Function to handle piano key clicks, called from HTML
 function pianoKeyClick(note) {
   playAndRecord(note);
+}
+
+// Play and record a note
+function playAndRecord(note) {
+  const pianoKey = document.getElementById(note);
+  if (pianoKey) {
+    pianoKey.style.backgroundColor = "gray";
+    synth.triggerAttackRelease(note, "8n", Tone.now());
+    setTimeout(() => pianoKey.style.backgroundColor = "", 200);
+  }
+
+  if (isRecording) {
+    recording.push({ note, duration: "8n", timing: (Date.now() - startTime) / 1000 });
+  }
 }
 
 // Play the tune
@@ -84,12 +92,14 @@ function stopRecording() {
   if (recording.length) recordAndCreateTune();
 }
 
-
-
 // Initialize
 function init() {
   fetchAndDisplayTunes();
   setupEventListeners();
+  // Ensure Tone.js is started after a user interaction
+  document.documentElement.addEventListener('mousedown', () => {
+    if (Tone.context.state !== 'running') Tone.context.resume();
+  });
 }
 
 // Sampler for playing notes
