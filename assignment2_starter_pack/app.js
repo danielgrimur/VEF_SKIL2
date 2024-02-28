@@ -34,10 +34,10 @@ async function recordAndCreateTune() {
 
   try {
     const { data } = await axios.post(API_URL, { name: tuneName, tune: recording });
-    tunes.push(data); // Add the new tune to the local 'tunes' array so it appears in the dropdown
-    updateTuneSelector(); // Update the dropdown menu to include the new tune
-    recordNameInput.value = ''; // Clear the input field after successful upload
-    recording = []; // Reset the recording array for the next session
+    tunes.push(data); // Add the new tune to dropdown
+    updateTuneSelector(); // Update the dropdown
+    recordNameInput.value = ''; // Clear the input field
+    recording = []; // Reset the recording array
   } catch (error) {
     console.error("Creation Error: ", error);
   }
